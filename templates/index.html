@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Residentes y Visitas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: white;
+            min-width: 200px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-residente {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-residente:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-visita {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-visita:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .form-container {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="datetime-local"] {
+            background: #fff;
+            cursor: pointer;
+            color: #333;
+        }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            background: #667eea;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        input[type="datetime-local"]:invalid {
+            border-color: #dc3545;
+        }
+
+        input[type="datetime-local"]:invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Registro de Residentes y Visitas</h1>
+        
+        <div id="menuInicial" class="button-group">
+            <button class="btn btn-residente" onclick="mostrarFormulario('residente')">
+                👤 Registrar Residente
+            </button>
+            <button class="btn btn-visita" onclick="mostrarFormulario('visita')">
+                🚪 Registrar Visita
+            </button>
+            <a href="/listar_registros" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                📋 Ver Registros
+            </a>
+        </div>
+
+        <!-- Formulario Residente -->
+        <div id="formResidente" class="form-container hidden">
+            <h2>Datos del Residente</h2>
+            <form id="formResidenteData" onsubmit="irACaptura(event, 'residente')">
+                <div class="form-group">
+                    <label for="nombreResidente">Nombre:</label>
+                    <input type="text" id="nombreResidente" required>
+                </div>
+                <div class="form-group">
+                    <label for="rutResidente">RUT:</label>
+                    <input type="text" id="rutResidente" required>
+                </div>
+                <button type="submit" class="btn-submit">Continuar a Captura de Fotos</button>
+                <button type="button" class="btn-submit" onclick="volverMenu()" style="background: #6c757d; margin-top: 10px;">Volver</button>
+            </form>
+        </div>
+
+        <!-- Formulario Visita -->
+        <div id="formVisita" class="form-container hidden">
+            <h2>Datos de la Visita</h2>
+            <form id="formVisitaData" onsubmit="irACaptura(event, 'visita')">
+                <div class="form-group">
+                    <label for="nombreVisita">Nombre:</label>
+                    <input type="text" id="nombreVisita" required>
+                </div>
+                <div class="form-group">
+                    <label for="rutVisita">RUT:</label>
+                    <input type="text" id="rutVisita" required>
+                </div>
+                <div class="form-group">
+                    <label for="fechaLimite">Fecha y Hora Límite:</label>
+                    <input type="datetime-local" id="fechaLimite" required min="">
+                    <small style="display: block; margin-top: 5px; color: #666; font-size: 0.9em;">
+                        No se pueden seleccionar fechas u horas pasadas
+                    </small>
+                </div>
+                <button type="submit" class="btn-submit">Continuar a Captura de Fotos</button>
+                <button type="button" class="btn-submit" onclick="volverMenu()" style="background: #6c757d; margin-top: 10px;">Volver</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Formatear RUT automáticamente (formato chileno: XX.XXX.XXX-X)
+        function formatearRUT(input) {
+            let valor = input.value.replace(/[^0-9kK]/g, '');
+            valor = valor.replace(/k/g, 'K');
+            
+            if (valor.length > 10) {
+                valor = valor.substring(0, 10);
+            }
+            
+            if (valor.length > 0) {
+                let rutFormateado = '';
+                let cuerpo = valor.slice(0, -1);
+                let dv = valor.slice(-1);
+                
+                if (cuerpo.length > 0) {
+                    let cuerpoReverso = cuerpo.split('').reverse().join('');
+                    let cuerpoConPuntos = cuerpoReverso.match(/.{1,3}/g).join('.');
+                    rutFormateado = cuerpoConPuntos.split('').reverse().join('');
+                }
+                
+                if (dv) {
+                    rutFormateado = rutFormateado + '-' + dv;
+                }
+                
+                input.value = rutFormateado;
+            } else {
+                input.value = '';
+            }
+        }
+
+        function mostrarFormulario(tipo) {
+            document.getElementById('menuInicial').classList.add('hidden');
+            document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.remove('hidden');
+        }
+
+        function volverMenu() {
+            document.getElementById('formResidente').classList.add('hidden');
+            document.getElementById('formVisita').classList.add('hidden');
+            document.getElementById('menuInicial').classList.remove('hidden');
+        }
+
+        function irACaptura(event, tipo) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById(`nombre${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).value;
+            const rutFormateado = document.getElementById(`rut${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).value;
+            const rut = rutFormateado.replace(/[^0-9kK]/g, '').toUpperCase();
+            
+            let params = new URLSearchParams({
+                tipo: tipo,
+                nombre: nombre,
+                rut: rut
+            });
+            
+            if (tipo === 'visita') {
+                const fechaLimiteInput = document.getElementById('fechaLimite');
+                const fechaSeleccionada = new Date(fechaLimiteInput.value);
+                const fechaActual = new Date();
+                
+                // Validar que no sea una fecha pasada
+                if (fechaSeleccionada < fechaActual) {
+                    fechaLimiteInput.setCustomValidity('No se puede seleccionar una fecha u hora pasada');
+                    fechaLimiteInput.reportValidity();
+                    return;
+                }
+                
+                const fechaLimite = fechaLimiteInput.value;
+                params.append('fecha_limite', fechaLimite);
+            }
+            
+            window.location.href = `/captura_fotos?${params.toString()}`;
+        }
+
+        // Función para obtener fecha/hora actual en formato datetime-local
+        function obtenerFechaHoraActual() {
+            const ahora = new Date();
+            // Ajustar al siguiente minuto para evitar problemas de redondeo
+            ahora.setMinutes(ahora.getMinutes() + 1);
+            const año = ahora.getFullYear();
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const horas = String(ahora.getHours()).padStart(2, '0');
+            const minutos = String(ahora.getMinutes()).padStart(2, '0');
+            return `${año}-${mes}-${dia}T${horas}:${minutos}`;
+        }
+
+        // Inicializar formateo de RUT y fecha límite por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            const rutResidente = document.getElementById('rutResidente');
+            const rutVisita = document.getElementById('rutVisita');
+            const fechaLimite = document.getElementById('fechaLimite');
+            
+            if (rutResidente) {
+                rutResidente.addEventListener('input', function() {
+                    formatearRUT(this);
+                });
+            }
+            
+            if (rutVisita) {
+                rutVisita.addEventListener('input', function() {
+                    formatearRUT(this);
+                });
+            }
+            
+            // Configurar fecha límite
+            if (fechaLimite) {
+                const fechaMinima = obtenerFechaHoraActual();
+                fechaLimite.min = fechaMinima;
+                
+                // Establecer fecha límite por defecto (24 horas desde ahora)
+                const ahora = new Date();
+                ahora.setHours(ahora.getHours() + 24);
+                const año = ahora.getFullYear();
+                const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+                const dia = String(ahora.getDate()).padStart(2, '0');
+                const horas = String(ahora.getHours()).padStart(2, '0');
+                const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                const fechaFormato = `${año}-${mes}-${dia}T${horas}:${minutos}`;
+                fechaLimite.value = fechaFormato;
+                
+                // Validar en tiempo real
+                fechaLimite.addEventListener('change', function() {
+                    const fechaSeleccionada = new Date(this.value);
+                    const fechaActual = new Date();
+                    
+                    if (fechaSeleccionada < fechaActual) {
+                        this.setCustomValidity('No se puede seleccionar una fecha u hora pasada');
+                        this.reportValidity();
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Fotos - {{ tipo|title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .camera-section {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 10px;
+            background: #000;
+            margin: 20px auto;
+            display: block;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .photos-gallery {
+            margin-top: 30px;
+        }
+
+        .photos-gallery h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-item .remove-btn:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+
+        .photo-counter {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Captura de Fotos - {{ tipo|title }}</h1>
+        
+        <div class="info-box">
+            <p><strong>Nombre:</strong> {{ nombre }}</p>
+            <p><strong>RUT:</strong> {{ rut }}</p>
+            {% if tipo == 'visita' %}
+            {% if tipo == 'visita' %}
+            <p><strong>Fecha y Hora Límite:</strong> {{ fecha_limite }}</p>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="camera-section">
+            <div class="form-group">
+                <label for="camaraSelect">Seleccionar Cámara:</label>
+                <select id="camaraSelect">
+                    <option value="">Cargando cámaras...</option>
+                </select>
+            </div>
+            
+            <div class="camera-controls">
+                <button type="button" class="btn btn-secondary" onclick="refrescarCamaras()">🔄 Actualizar Cámaras</button>
+                <button type="button" class="btn btn-primary" onclick="iniciarCamara()">📷 Activar Cámara</button>
+                <button type="button" class="btn btn-success" onclick="capturarFoto()" id="btnCapturar" disabled>📸 Capturar Foto</button>
+                <button type="button" class="btn btn-secondary" onclick="detenerCamara()">⏹️ Detener Cámara</button>
+            </div>
+
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="photos-gallery">
+            <h2>Fotos Capturadas</h2>
+            <div class="photo-counter">
+                <span id="contadorFotos">0</span> / 20 fotos
+            </div>
+            <div class="photos-grid" id="photosGrid">
+                <!-- Las fotos se agregarán aquí dinámicamente -->
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn btn-primary" onclick="registrar()" id="btnRegistrar" disabled>
+                ✅ Registrar {{ tipo|title }}
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='/'">
+                ← Volver al Inicio
+            </button>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        let stream = null;
+        let fotosCapturadas = [];
+        const maxFotos = 20;
+        const tipo = '{{ tipo }}';
+        const nombre = '{{ nombre }}';
+        const rut = '{{ rut }}';
+        const fechaLimite = '{{ fecha_limite|default("") }}';
+        const registroId = '{{ registro_id|default("") }}';
+
+        // Polyfill para getUserMedia
+        function getUserMedia(constraints) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                return navigator.mediaDevices.getUserMedia(constraints);
+            }
+            
+            const getUserMediaLegacy = navigator.getUserMedia || 
+                                      navigator.webkitGetUserMedia || 
+                                      navigator.mozGetUserMedia || 
+                                      navigator.msGetUserMedia;
+            
+            if (!getUserMediaLegacy) {
+                return Promise.reject(new Error('getUserMedia no está soportado'));
+            }
+            
+            return new Promise(function(resolve, reject) {
+                getUserMediaLegacy.call(navigator, constraints, resolve, reject);
+            });
+        }
+
+        // Listar cámaras disponibles
+        async function listarCamaras() {
+            const select = document.getElementById('camaraSelect');
+            select.innerHTML = '<option value="">Cargando cámaras...</option>';
+            
+            try {
+                // Solicitar permisos primero para obtener nombres de cámaras
+                try {
+                    await navigator.mediaDevices.getUserMedia({ video: true });
+                } catch (e) {
+                    // Continuar de todas formas
+                }
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    select.innerHTML = '<option value="">No se encontraron cámaras</option>';
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Selecciona una cámara</option>';
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Cámara ${index + 1}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al listar cámaras:', error);
+                select.innerHTML = '<option value="">Error al cargar cámaras</option>';
+            }
+        }
+
+        async function refrescarCamaras() {
+            if (stream) {
+                detenerCamara();
+            }
+            await listarCamaras();
+        }
+
+        async function iniciarCamara() {
+            const select = document.getElementById('camaraSelect');
+            const deviceId = select.value;
+            const video = document.getElementById('video');
+            
+            if (!deviceId) {
+                alert('Por favor, selecciona una cámara primero');
+                return;
+            }
+            
+            try {
+                const constraints = { 
+                    video: { 
+                        deviceId: { exact: deviceId },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } 
+                };
+                
+                stream = await getUserMedia(constraints);
+                video.srcObject = stream;
+                document.getElementById('btnCapturar').disabled = false;
+            } catch (error) {
+                let mensajeError = 'Error al acceder a la cámara: ';
+                if (error.name === 'NotAllowedError') {
+                    mensajeError += 'Permiso denegado. Por favor, permite el acceso a la cámara.';
+                } else if (error.name === 'NotFoundError') {
+                    mensajeError += 'No se encontró ninguna cámara.';
+                } else if (error.name === 'NotReadableError') {
+                    mensajeError += 'La cámara está siendo usada por otra aplicación.';
+                } else {
+                    mensajeError += error.message;
+                }
+                alert(mensajeError);
+            }
+        }
+
+        function detenerCamara() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            const video = document.getElementById('video');
+            video.srcObject = null;
+            document.getElementById('btnCapturar').disabled = true;
+        }
+
+        function capturarFoto() {
+            if (fotosCapturadas.length >= maxFotos) {
+                alert(`Ya has capturado el máximo de ${maxFotos} fotos`);
+                return;
+            }
+
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            
+            if (!video.srcObject) {
+                alert('Por favor, activa la cámara primero');
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            const fotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            fotosCapturadas.push(fotoBase64);
+            
+            actualizarGaleria();
+            actualizarContador();
+            
+            if (fotosCapturadas.length >= 1) {
+                document.getElementById('btnRegistrar').disabled = false;
+            }
+        }
+
+        function eliminarFoto(index) {
+            fotosCapturadas.splice(index, 1);
+            actualizarGaleria();
+            actualizarContador();
+            
+            if (fotosCapturadas.length === 0) {
+                document.getElementById('btnRegistrar').disabled = true;
+            }
+        }
+
+        function actualizarGaleria() {
+            const grid = document.getElementById('photosGrid');
+            grid.innerHTML = '';
+            
+            fotosCapturadas.forEach((foto, index) => {
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                
+                const img = document.createElement('img');
+                img.src = foto;
+                img.alt = `Foto ${index + 1}`;
+                
+                const btn = document.createElement('button');
+                btn.className = 'remove-btn';
+                btn.innerHTML = '×';
+                btn.onclick = () => eliminarFoto(index);
+                
+                div.appendChild(img);
+                div.appendChild(btn);
+                grid.appendChild(div);
+            });
+        }
+
+        function actualizarContador() {
+            document.getElementById('contadorFotos').textContent = fotosCapturadas.length;
+        }
+
+        async function registrar() {
+            if (fotosCapturadas.length === 0) {
+                mostrarMensaje('Por favor, captura al menos una foto', 'error');
+                return;
+            }
+
+            const btnRegistrar = document.getElementById('btnRegistrar');
+            btnRegistrar.disabled = true;
+            btnRegistrar.textContent = 'Registrando...';
+
+            try {
+                const endpoint = tipo === 'residente' ? '/registrar_residente' : '/registrar_visita';
+                const body = {
+                    nombre: nombre,
+                    rut: rut,
+                    fotos: fotosCapturadas
+                };
+
+                if (tipo === 'visita') {
+                    body.fecha_limite = fechaLimite;
+                }
+
+                if (registroId) {
+                    body.registro_id = registroId;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    mostrarMensaje(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    mostrarMensaje(data.message, 'error');
+                    btnRegistrar.disabled = false;
+                    btnRegistrar.textContent = `✅ Registrar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+                }
+            } catch (error) {
+                mostrarMensaje('Error al registrar: ' + error.message, 'error');
+                btnRegistrar.disabled = false;
+                btnRegistrar.textContent = `✅ Registrar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+            }
+        }
+
+        function mostrarMensaje(mensaje, tipo) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = mensaje;
+            messageDiv.className = `message ${tipo}`;
+            messageDiv.style.display = 'block';
+        }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            listarCamaras();
+        });
+
+        // Detener cámara al salir de la página
+        window.addEventListener('beforeunload', function() {
+            detenerCamara();
+        });
+    </script>
+</body>
+</html>
+

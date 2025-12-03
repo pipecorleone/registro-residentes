@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Registros</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .header-actions {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .registros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .registro-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .registro-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .registro-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .registro-card .info {
+            margin-bottom: 10px;
+        }
+
+        .registro-card .info strong {
+            color: #667eea;
+        }
+
+        .registro-card .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .badge-residente {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-visita {
+            background: #f5576c;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .card-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-danger-small {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger-small:hover {
+            background: #c82333;
+        }
+
+        .btn-warning-small {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning-small:hover {
+            background: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Lista de Registros</h1>
+        
+        <div class="header-actions">
+            <a href="/" class="btn btn-primary">🏠 Volver al Inicio</a>
+        </div>
+
+        <!-- Sección de Residentes -->
+        <div class="section">
+            <h2>👤 Residentes ({{ residentes|length }})</h2>
+            {% if residentes %}
+            <div class="registros-grid">
+                {% for residente in residentes %}
+                <div class="registro-card">
+                    <img src="/foto/{{ residente.id }}/residente" alt="{{ residente.nombre }}" 
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Crect fill=%27%23ddd%27 width=%27200%27 height=%27200%27/%3E%3Ctext fill=%27%23999%27 font-family=%27sans-serif%27 font-size=%2714%27 dy=%2710.5%27 font-weight=%27bold%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27%3ESin imagen%3C/text%3E%3C/svg%3E'">
+                    <div class="info">
+                        <strong>Nombre:</strong> {{ residente.nombre }}
+                    </div>
+                    <div class="info">
+                        <strong>RUT:</strong> {{ residente.rut }}
+                    </div>
+                    <div class="info">
+                        <strong>Fecha Registro:</strong> {{ residente.fecha_registro[:10] }}
+                    </div>
+                    <span class="badge badge-residente">Residente</span>
+                    <div class="card-actions">
+                        <button class="btn-small btn-warning-small" onclick="retomarFotos('residente', {{ residente.id }})">
+                            📸 Retomar Fotos
+                        </button>
+                        <button class="btn-small btn-danger-small" onclick="eliminarRegistro('residente', {{ residente.id }}, '{{ residente.nombre }}')">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay residentes registrados</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección de Visitas -->
+        <div class="section">
+            <h2>🚪 Visitas ({{ visitas|length }})</h2>
+            {% if visitas %}
+            <div class="registros-grid">
+                {% for visita in visitas %}
+                <div class="registro-card">
+                    <img src="/foto/{{ visita.id }}/visita" alt="{{ visita.nombre }}"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Crect fill=%27%23ddd%27 width=%27200%27 height=%27200%27/%3E%3Ctext fill=%27%23999%27 font-family=%27sans-serif%27 font-size=%2714%27 dy=%2710.5%27 font-weight=%27bold%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27%3ESin imagen%3C/text%3E%3C/svg%3E'">
+                    <div class="info">
+                        <strong>Nombre:</strong> {{ visita.nombre }}
+                    </div>
+                    <div class="info">
+                        <strong>RUT:</strong> {{ visita.rut }}
+                    </div>
+                    <div class="info">
+                        <strong>Fecha Registro:</strong> {{ visita.fecha_registro[:10] }}
+                    </div>
+                    <div class="info">
+                        <strong>Expira:</strong> {{ visita.fecha_expiracion[:16] }}
+                    </div>
+                    <span class="badge badge-visita">Visita</span>
+                    <div class="card-actions">
+                        <button class="btn-small btn-warning-small" onclick="retomarFotos('visita', {{ visita.id }})">
+                            📸 Retomar Fotos
+                        </button>
+                        <button class="btn-small btn-danger-small" onclick="eliminarRegistro('visita', {{ visita.id }}, '{{ visita.nombre }}')">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay visitas registradas</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        async function eliminarRegistro(tipo, id, nombre) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar a ${nombre}? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/eliminar_registro/${tipo}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error al eliminar registro: ' + error.message);
+            }
+        }
+
+        function retomarFotos(tipo, id) {
+            if (confirm('¿Deseas retomar las fotos? Las fotos anteriores serán eliminadas.')) {
+                window.location.href = `/retomar_fotos/${tipo}/${id}`;
+            }
+        }
+    </script>
+</body>
+</html>
+
