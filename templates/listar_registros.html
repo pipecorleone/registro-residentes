@@ -261,6 +261,25 @@
     </div>
 
     <script>
+        // Limpiar automáticamente las visitas expiradas cuando se carga la página
+        async function limpiarVisitasExpiradas() {
+            try {
+                const response = await fetch('/limpiar_visitas_expiradas', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.eliminadas > 0) {
+                    // Recargar la página si se eliminaron visitas expiradas
+                    location.reload();
+                }
+            } catch (error) {
+                console.log('Error al limpiar visitas expiradas: ' + error.message);
+                // No mostrar alerta, solo registrar en consola
+            }
+        }
+
         async function eliminarRegistro(tipo, id, nombre) {
             if (!confirm(`¿Estás seguro de que deseas eliminar a ${nombre}? Esta acción no se puede deshacer.`)) {
                 return;
@@ -289,6 +308,60 @@
                 window.location.href = `/retomar_fotos/${tipo}/${id}`;
             }
         }
+
+        // Programación automática: polling y temporizador hasta la próxima expiración
+        let _nextTimeoutId = null;
+
+        function scheduleNextExpiration() {
+            if (_nextTimeoutId) {
+                clearTimeout(_nextTimeoutId);
+                _nextTimeoutId = null;
+            }
+
+            const nodes = Array.from(document.querySelectorAll('.registro-card[data-expire]'));
+            const now = new Date();
+            let next = null;
+
+            nodes.forEach(n => {
+                const attr = n.getAttribute('data-expire');
+                if (!attr) return;
+                // Asegurar formato ISO: reemplazar espacio por 'T' si existe
+                const normalized = attr.replace(' ', 'T');
+                const d = new Date(normalized);
+                // Si sigue sin parsear, intentar parse manual reemplazando espacios
+                if (isNaN(d)) {
+                    console.debug('Fecha inválida en data-expire:', attr);
+                    return;
+                }
+                if (d > now && (!next || d < next)) next = d;
+            });
+
+            if (next) {
+                const delay = next.getTime() - now.getTime() + 1000; // pequeño buffer 1s
+                // Si la demora es negativa, ejecutar inmediatamente
+                if (delay <= 0) {
+                    limpiarVisitasExpiradas();
+                    scheduleNextExpiration();
+                } else {
+                    // Limitar el timeout a 24 horas para seguridad
+                    const capped = Math.min(delay, 24 * 60 * 60 * 1000);
+                    _nextTimeoutId = setTimeout(() => {
+                        limpiarVisitasExpiradas();
+                        scheduleNextExpiration();
+                    }, capped);
+                }
+            }
+        }
+
+        // Ejecutar limpieza al cargar la página, programar siguiente expiración y polling cada 30s
+        document.addEventListener('DOMContentLoaded', function() {
+            limpiarVisitasExpiradas();
+            scheduleNextExpiration();
+            // Polling como respaldo cada 30 segundos
+            setInterval(() => {
+                limpiarVisitasExpiradas();
+            }, 30 * 1000);
+        });
     </script>
 </body>
 </html>

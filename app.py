@@ -7,6 +7,8 @@ import json
 import shutil
 import re
 from dotenv import load_dotenv
+import threading
+import time
 
 # Cargar variables de entorno desde archivo .env
 load_dotenv()
@@ -19,9 +21,8 @@ upload_folder_env = os.getenv('UPLOAD_FOLDER')
 if upload_folder_env:
     app.config['UPLOAD_FOLDER'] = upload_folder_env
 else:
-    # Ruta por defecto en la raíz del proyecto
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    app.config['UPLOAD_FOLDER'] = os.path.join(base_dir, 'fotos')
+    # Ruta por defecto
+    app.config['UPLOAD_FOLDER'] = '/home/administrador/Documents/reconocimiento_facial/base_rostros'
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
@@ -99,9 +100,43 @@ def init_db():
         c.execute('ALTER TABLE visitas ADD COLUMN carpeta_path TEXT')
     except sqlite3.OperationalError:
         pass  # La columna ya existe, no hacer nada
-    
+
+
+def cleanup_expired_visits(now=None):
+    """
+    Limpia visitas expiradas: elimina carpetas del filesystem y registros en DB.
+
+    Args:
+        now (datetime, optional): Fecha/hora de referencia. Si es None usa datetime.now().
+
+    Returns:
+        int: número de visitas eliminadas
+    """
+    referencia = now or datetime.now()
+    conn = sqlite3.connect('registro.db')
+    c = conn.cursor()
+
+    # Obtener todas las visitas expiradas con sus rutas de carpeta
+    c.execute('''SELECT carpeta_path FROM visitas WHERE fecha_expiracion < ?''', (referencia,))
+    carpetas_expiradas = c.fetchall()
+
+    eliminadas_count = 0
+    # Eliminar carpetas completas del sistema de archivos
+    for (carpeta_path,) in carpetas_expiradas:
+        try:
+            if carpeta_path and os.path.exists(carpeta_path):
+                shutil.rmtree(carpeta_path)
+        except Exception as e:
+            # Registrar error pero continuar con otras carpetas
+            print(f"Error al eliminar carpeta {carpeta_path}: {e}")
+
+    # Eliminar registros de visitas expiradas de la base de datos
+    c.execute('''DELETE FROM visitas WHERE fecha_expiracion < ?''', (referencia,))
+    eliminadas_count = c.rowcount
     conn.commit()
     conn.close()
+
+    return eliminadas_count
 
 @app.route('/')
 def index():
@@ -529,30 +564,7 @@ def limpiar_visitas_expiradas():
         500: Error al procesar la limpieza
     """
     try:
-        conn = sqlite3.connect('registro.db')
-        c = conn.cursor()
-        
-        # Obtener todas las visitas expiradas con sus rutas de carpeta
-        c.execute('''SELECT carpeta_path FROM visitas 
-                     WHERE fecha_expiracion < ?''', (datetime.now(),))
-        carpetas_expiradas = c.fetchall()
-        
-        # Eliminar carpetas completas del sistema de archivos
-        for (carpeta_path,) in carpetas_expiradas:
-            try:
-                if os.path.exists(carpeta_path):
-                    # Eliminar carpeta completa con todas sus fotos
-                    shutil.rmtree(carpeta_path)
-            except Exception as e:
-                # Registrar error pero continuar con otras carpetas
-                print(f"Error al eliminar carpeta {carpeta_path}: {e}")
-        
-        # Eliminar registros de visitas expiradas de la base de datos
-        c.execute('''DELETE FROM visitas WHERE fecha_expiracion < ?''', (datetime.now(),))
-        eliminadas = c.rowcount
-        conn.commit()
-        conn.close()
-        
+        eliminadas = cleanup_expired_visits()
         return jsonify({'success': True, 'eliminadas': eliminadas})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -705,5 +717,25 @@ def retomar_fotos(tipo, registro_id):
 
 if __name__ == '__main__':
     init_db()
+    # Iniciar hilo de limpieza en segundo plano (solo en el proceso principal del servidor)
+    # Evitar duplicados cuando el servidor de desarrollo usa reloader
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+        def start_cleanup_thread(interval_seconds=60):
+            def loop():
+                while True:
+                    try:
+                        eliminadas = cleanup_expired_visits()
+                        if eliminadas:
+                            app.logger.info(f"Cleanup eliminó {eliminadas} visitas expiradas")
+                    except Exception:
+                        app.logger.exception('Error en hilo de limpieza')
+                    time.sleep(interval_seconds)
+
+            t = threading.Thread(target=loop, daemon=True)
+            t.start()
+            return t
+
+        start_cleanup_thread(interval_seconds=60)
+
     app.run(debug=True, host='0.0.0.0', port=5000)
 

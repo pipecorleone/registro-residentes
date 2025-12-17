@@ -322,23 +322,33 @@
         async function listarCamaras() {
             const select = document.getElementById('camaraSelect');
             select.innerHTML = '<option value="">Cargando cámaras...</option>';
-            
+
             try {
-                // Solicitar permisos primero para obtener nombres de cámaras
-                try {
-                    await navigator.mediaDevices.getUserMedia({ video: true });
-                } catch (e) {
-                    // Continuar de todas formas
-                }
-                
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
-                if (videoDevices.length === 0) {
-                    select.innerHTML = '<option value="">No se encontraron cámaras</option>';
+                // Verificar si el navegador soporta mediaDevices
+                if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                    select.innerHTML = '<option value="">Tu navegador no soporta acceso a cámaras</option>';
+                    alert('Tu navegador no soporta acceso a la cámara. Por favor, usa un navegador moderno como Chrome, Firefox o Edge.');
                     return;
                 }
-                
+
+                // Solicitar permisos primero para obtener nombres de cámaras
+                try {
+                    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    // Detener el stream temporal inmediatamente
+                    tempStream.getTracks().forEach(track => track.stop());
+                } catch (e) {
+                    console.log('No se pudieron obtener permisos iniciales:', e);
+                }
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                if (videoDevices.length === 0) {
+                    select.innerHTML = '<option value="">No se encontraron cámaras</option>';
+                    alert('No se detectaron cámaras conectadas. Por favor, conecta una cámara y actualiza.');
+                    return;
+                }
+
                 select.innerHTML = '<option value="">Selecciona una cámara</option>';
                 videoDevices.forEach((device, index) => {
                     const option = document.createElement('option');
@@ -349,6 +359,7 @@
             } catch (error) {
                 console.error('Error al listar cámaras:', error);
                 select.innerHTML = '<option value="">Error al cargar cámaras</option>';
+                alert('Error al detectar cámaras: ' + error.message);
             }
         }
 
@@ -363,36 +374,55 @@
             const select = document.getElementById('camaraSelect');
             const deviceId = select.value;
             const video = document.getElementById('video');
-            
+
             if (!deviceId) {
                 alert('Por favor, selecciona una cámara primero');
                 return;
             }
-            
+
+            // Detener stream anterior si existe
+            if (stream) {
+                detenerCamara();
+            }
+
             try {
-                const constraints = { 
-                    video: { 
+                const constraints = {
+                    video: {
                         deviceId: { exact: deviceId },
                         width: { ideal: 640 },
                         height: { ideal: 480 }
-                    } 
+                    }
                 };
-                
+
                 stream = await getUserMedia(constraints);
                 video.srcObject = stream;
+
+                // Esperar a que el video esté listo
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+
                 document.getElementById('btnCapturar').disabled = false;
+                console.log('Cámara iniciada correctamente');
             } catch (error) {
+                console.error('Error al iniciar cámara:', error);
                 let mensajeError = 'Error al acceder a la cámara: ';
                 if (error.name === 'NotAllowedError') {
-                    mensajeError += 'Permiso denegado. Por favor, permite el acceso a la cámara.';
+                    mensajeError += 'Permiso denegado. Por favor, permite el acceso a la cámara en tu navegador.';
                 } else if (error.name === 'NotFoundError') {
-                    mensajeError += 'No se encontró ninguna cámara.';
+                    mensajeError += 'No se encontró la cámara seleccionada. Intenta actualizar la lista de cámaras.';
                 } else if (error.name === 'NotReadableError') {
-                    mensajeError += 'La cámara está siendo usada por otra aplicación.';
+                    mensajeError += 'La cámara está siendo usada por otra aplicación. Cierra otras aplicaciones que puedan estar usando la cámara.';
+                } else if (error.name === 'OverconstrainedError') {
+                    mensajeError += 'La cámara no soporta la configuración solicitada. Intenta con otra cámara.';
                 } else {
-                    mensajeError += error.message;
+                    mensajeError += error.message || 'Error desconocido';
                 }
                 alert(mensajeError);
+                detenerCamara();
             }
         }
 

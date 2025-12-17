@@ -300,8 +300,12 @@
                 const fechaSeleccionada = new Date(fechaLimiteInput.value);
                 const fechaActual = new Date();
                 
-                // Validar que no sea una fecha pasada
-                if (fechaSeleccionada < fechaActual) {
+                // Validar que no sea una fecha/hora pasada (permitir la hora actual)
+                // Comparar hasta minutos, ignorando segundos
+                const minutoActual = Math.floor(fechaActual.getTime() / 60000) * 60000;
+                const minutoSeleccionado = Math.floor(fechaSeleccionada.getTime() / 60000) * 60000;
+                
+                if (minutoSeleccionado < minutoActual) {
                     fechaLimiteInput.setCustomValidity('No se puede seleccionar una fecha u hora pasada');
                     fechaLimiteInput.reportValidity();
                     return;
@@ -317,8 +321,7 @@
         // Función para obtener fecha/hora actual en formato datetime-local
         function obtenerFechaHoraActual() {
             const ahora = new Date();
-            // Ajustar al siguiente minuto para evitar problemas de redondeo
-            ahora.setMinutes(ahora.getMinutes() + 1);
+            // Permitir seleccionar la hora actual del mismo día
             const año = ahora.getFullYear();
             const mes = String(ahora.getMonth() + 1).padStart(2, '0');
             const dia = String(ahora.getDate()).padStart(2, '0');
@@ -366,7 +369,11 @@
                     const fechaSeleccionada = new Date(this.value);
                     const fechaActual = new Date();
                     
-                    if (fechaSeleccionada < fechaActual) {
+                    // Comparar hasta minutos, permitiendo la hora actual
+                    const minutoActual = Math.floor(fechaActual.getTime() / 60000) * 60000;
+                    const minutoSeleccionado = Math.floor(fechaSeleccionada.getTime() / 60000) * 60000;
+                    
+                    if (minutoSeleccionado < minutoActual) {
                         this.setCustomValidity('No se puede seleccionar una fecha u hora pasada');
                         this.reportValidity();
                     } else {
